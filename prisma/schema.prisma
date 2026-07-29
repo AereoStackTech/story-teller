@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String         @unique
+  password      String
+  role          String         @default("CUSTOMER") // "CUSTOMER" | "ADMIN"
+  image         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  stories       Story[]
+  characters    Character[]
+  subscriptions Subscription[]
+  transactions  Transaction[]
+}
+
+model Story {
+  id          String    @id @default(cuid())
+  title       String
+  genre       String
+  synopsis    String
+  tone        String    @default("Dramatic")
+  targetAudience String @default("General")
+  status      String    @default("DRAFT") // "DRAFT" | "PUBLISHED" | "ARCHIVED"
+  wordCount   Int       @default(0)
+  content     String
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapters    Chapter[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Chapter {
+  id          String   @id @default(cuid())
+  title       String
+  order       Int
+  content     String
+  summary     String?
+  wordCount   Int      @default(0)
+  storyId     String
+  story       Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Character {
+  id          String   @id @default(cuid())
+  name        String
+  role        String   // e.g., Protagonist, Antagonist, Supporting
+  archetype   String
+  bio         String
+  traits      String   // Comma separated traits
+  goal        String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Subscription {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan        String    @default("PRO") // "FREE" | "PRO" | "ENTERPRISE"
+  status      String    @default("ACTIVE") // "ACTIVE" | "CANCELED" | "EXPIRED"
+  credits     Int       @default(1000)
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Float
+  currency    String   @default("USD")
+  description String
+  status      String   @default("COMPLETED")
+  createdAt   DateTime @default(now())
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  eventType String
+  metadata  String?  // JSON stringified payload
+  createdAt DateTime @default(now())
+}
