@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
 
 export async function GET() {
   try {
+    const session = await getServerSession();
+    // @ts-ignore - Assuming role is on user for this demo implementation, normally typed via next-auth module augmentation
+    if (!session || !session.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const userCount = await prisma.user.count();
     const storyCount = await prisma.story.count();
     const characterCount = await prisma.character.count();
