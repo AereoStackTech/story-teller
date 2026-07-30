@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,9 +31,12 @@ export default function StoriesPage() {
       const data = await res.json();
       if (data.stories) {
         setStories(data.stories);
-        if (data.stories.length > 0 && !activeTabStory) {
-          setActiveTabStory(data.stories[0]);
-        }
+        // Only set active tab if we have stories and no active tab is currently selected
+        // We use a functional state update to avoid adding activeTabStory to dependencies
+        setActiveTabStory((prev: any) => {
+           if (!prev && data.stories.length > 0) return data.stories[0];
+           return prev;
+        });
       }
     } catch (err) {}
   };
@@ -208,7 +211,7 @@ export default function StoriesPage() {
           <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">Manuscripts Library</h3>
           {stories.length === 0 ? (
             <Card className="border-dashed border-white/20 bg-slate-900/40 p-6 text-center text-slate-500 text-xs">
-              No manuscripts found. Click "New Manuscript" to create your first story!
+              No manuscripts found. Click &quot;New Manuscript&quot; to create your first story!
             </Card>
           ) : (
             stories.map((s) => (
@@ -272,7 +275,7 @@ export default function StoriesPage() {
                   <div>
                     <h4 className="text-xs font-semibold uppercase text-slate-400 mb-2">Premise</h4>
                     <p className="text-xs text-slate-300 italic bg-slate-950 p-3 rounded-lg border border-white/5">
-                      "{activeTabStory.synopsis}"
+                      &quot;{activeTabStory.synopsis}&quot;
                     </p>
                   </div>
 
